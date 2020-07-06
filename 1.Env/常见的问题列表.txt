@@ -1,0 +1,38 @@
+-----如何卸载k3s--------------
+卸载脚本默认在 /usr/local/bin/k3s-uninstall.sh
+卸载脚本默认在 /usr/local/bin/k3s-agent-uninstall.sh
+执行该脚本可以删除k3s
+
+
+-----------------如果使用默认的容器运行环境--------
+k3s默认没有使用Docker作为容器运行环境，而是使用了内置的contained，可以使用crictl子命令与CRI交互。
+如果习惯使用docker命令行可以设置如下别名:
+sudo vim ~/.bashrc
+#在最后添加：
+alias sudo='sudo '
+alias docker='k3s crictl'
+#重新执行刚修改的初始化文档
+source ~/.bashrc
+
+重启K3S服务：  systemctl restart k3s-agent.service
+ 
+
+--工作节点上的docker镜像问题
+--pause镜像的问题， 针对arm64架构的node， 必须要单独指定下载 arm64版本的， 否则网络错误， 不能形成拓扑结构
+
+sudo docker rmi rancher/pause:3.1 -f
+sudo docker pull rancher/pause@sha256:2aac966ece8906a535395f92bb25f0e8e21dac737df75b381e8f9bdd3ed56528
+sudo docker tag  1 rancher/rancher-agent:v2.4.3
+
+sudo docker pull rancher/rancher-agent@sha256:880b0b0914c45cd98bc0977414e8e553c375530b1bac03d9c9eebed0b9dcdead
+sudo docker rmi rancher/rancher-agent:v2.4.3 -f
+sudo docker tag  2 rancher/rancher-agent:v2.4.3
+
+sudo docker pull rancher/klipper-lb:v0.1.2@sha256:92528c2c86bc2f6abadeb241c9ec09165e7c44662381b6721578eff4ad1691d3
+sudo docker rmi rancher/klipper-lb:v0.1.2 -f
+sudo docker tag  3 rancher/klipper-lb:v0.1.2
+
+
+
+
+

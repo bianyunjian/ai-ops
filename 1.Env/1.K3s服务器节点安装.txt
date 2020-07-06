@@ -1,0 +1,60 @@
+环境准备：
+sudo apt install -y vim
+sudo apt install -y curl
+sudo apt install -y wget
+sudo apt install -y nfs-common
+
+
+1.安装 Docker 环境
+sudo vim  /etc/apt/sources.list
+## 末尾添加以下源
+deb [arch=arm64] https://download.docker.com/linux/ubuntu bionic stable
+deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+#添加Docker官方GPG key
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+sudo apt update
+sudo apt-get install docker-ce
+docker version
+
+配置 Docker 镜像站
+sudo vim /etc/docker/daemon.json
+添加：
+{
+	"registry-mirrors": ["https://f8vzefnx.mirror.aliyuncs.com"]
+}
+重启Docker后使docker的配置文件生效
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+2. 安装 k3s集群
+使用一键脚本即可完成K3S环境的安装：
+sh k3s_install.sh
+
+-- 在自动下载安装的过程中存在网络问题. 下载k3s的二进制可执行文件
+下载k3s二进制可执行文件(地址可以根据sh install.sh的命令行打印显示获取)
+wget https://github.com/rancher/k3s/releases/download/v0.10.2/k3s
+wget https://github.com/rancher/k3s/releases/download/v1.18.2+k3s1/k3s-arm64
+之后上传此Binary到服务器端的 /usr/local/bin/k3s，并赋予可执行属性：
+chmod +x /usr/local/bin/k3s
+
+
+安装完成后，我们需要调整下K3S的服务配置文件，以将K3S的默认容器引擎从Containerd切换到Docker。
+修改K3S服务的配置文件：
+vim /etc/systemd/system/multi-user.target.wants/k3s.service
+需要修改ExecStart的值，将其修改为：
+/usr/local/bin/k3s server --docker
+#/usr/local/bin/k3s server --docker --no-deploy traefik
+保存退出，执行命令重新加载新的服务配置文件：systemctl daemon-reload
+重启K3S服务：  service k3s restart
+通过命令确认K3S集群是否就绪：  k3s kubectl get node
+
+-- 可能遇到Docker启动失败的问题：
+kubelet 使用的cgroupdriver和docker使用的不一样的问题
+修改文件： /etc/systemd/system/multi-user.target.wants/docker.service
+          /etc/docker/daemon.json  
+  两处只需要设置一个就行
+
+
+
+

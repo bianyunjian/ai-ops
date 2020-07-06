@@ -1,0 +1,61 @@
+ 
+
+-----------------安装 kuboard-----------------------------
+1. 安装 Kuboard
+k3s kubectl apply -f kuboard.yaml
+k3s kubectl apply -f metrics-server.yaml
+// 支持arm64的镜像版本 ： rancher/metrics-server:v0.3.6
+
+查看 Kuboard 运行状态：
+
+kubectl get pods -l kuboard -n kube-system
+   
+输出结果如下所示：
+
+NAME                       READY   STATUS        RESTARTS   AGE
+kuboard-54c9c4f6cb-6lf88   1/1     Running       0          45s
+
+2.卸载 Kuboard
+k3s kubectl delete -f kuboard.yaml
+k3s kubectl delete -f metrics-server.yaml
+
+3. 获取Token
+管理员用户拥有的权限 
+# 在第一个 Master 节点上执行此命令
+k3s kubectl -n kube-system get secret $(k3s kubectl -n kube-system get secret | grep kuboard-user | awk '{print $1}') -o go-template='{{.data.token}}' | base64 -d
+
+得到结果：
+eyJhbGciOiJSUzI1NiIsImtpZCI6Im8yQ0JTVHZheGNYdlpmQ2Q0SVItUVA2NTU0SDJTMGlWaVhUUEFnYXBpckUifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJrdWJvYXJkLXVzZXItdG9rZW4tcm5tbm0iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoia3Vib2FyZC11c2VyIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiZjMzYzU3YTgtOTExOS00ZWRhLWJmNWEtMDJhZTVmOWExNjMxIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50Omt1YmUtc3lzdGVtOmt1Ym9hcmQtdXNlciJ9.wOjV1__RckUkqmxemQ9iCPLA97fk41fu_6orCSCeAwf7T_G4b4eBRstcwUOjYcIEGeE2XTkPJZFACnW_gnZwJGu2bmTNv-cf4MNCelo9nLDQHmZa5R82VHWOdqfQtXI8PBAadCPPQiYNLd92AoIeg9xBv2FmJutICp_WCcnciday9-xK_6huDHAQuV0GSiaC10ekP2hki5UTVGFNFKSpCadJQ24oC0EUIRPpRodxZuwpaBFpZCv9Q3BDzWMS4fNA3Gmx4O-tD-UsJWW7RQSH0m1bi2eQlD6uD5-FezaMKh5qeNUSWHSzvf-kwpSprgkUoU1_6HkB9ZfptbIe9nt7Vw
+
+4.访问Kuboard
+通过NodePort访问
+Kuboard Service 使用了 NodePort 的方式暴露服务，NodePort 为 32567；您可以按如下方式访问 Kuboard。
+http://任意一个节点的IP地址:32567/
+输入前一步骤中获得的 token，可进入 Kuboard 集群概览页
+
+ 
+
+
+
+-----------------安装 Rancher Server-----------------------------
+1. 安装 Rancher Server
+Rancher Server 已经打包成了Docker 镜像
+运行命令：
+docker run -d -v /data/docker/rancher-server/var/lib/rancher/:/var/lib/rancher/ --restart=unless-stopped --name rancher-server -p 80:80 -p 443:443 rancher/rancher:stable
+
+-- 如果不想占用宿主机的80/443端口， 可以修改为自定义的端口
+如： docker run -d -v /data/docker/rancher-server/var/lib/rancher/:/var/lib/rancher/ --restart=unless-stopped --name rancher-server -p 9080:80 -p 9443:443 rancher/rancher:stable
+
+2.容器启动后， 访问 https://xx.xx.xx.xx:9443/, 进入Rancher Server 主界面
+
+3. 创建集群 ， 选择导入集群
+  完成后我们会得到导入K3S集群所需的命令，请保存好第三条命令以备后 
+curl --insecure -sfL https://172.16.114.72:9443/v3/import/l8wj8zqw7c2bwlsp5hfdj9mg9697r9n9c9lmzzqtfww4wlz6kwlqtt.yaml | k3s kubectl apply -f -
+
+ 
+4. 在master节点上运行步骤4得到的导入集群的命令， 即可将Rancher Server和 k3s关联起来
+
+-------- 服务器就准备好了
+ 
+
+

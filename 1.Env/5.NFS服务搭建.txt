@@ -1,0 +1,101 @@
+NFS 服务
+
+-----Ubuntu-----------------
+服务端： 
+sudo apt install -y nfs-common
+sudo apt install -y nfs-kernel-server
+
+编辑exports文件，添加从机 
+vim /etc/exports
+/data/nfs/ *(rw,sync,no_root_squash,no_subtree_check)
+
+# *：允许所有的网段访问，也可以使用具体的IP
+# rw：挂接此目录的客户端对该共享目录具有读写权限
+# sync：资料同步写入内存和硬盘
+# no_root_squash：root用户具有对根目录的完全管理访问权限
+# no_subtree_check：不检查父目录的权限
+
+
+#启动nfs服务
+#先为rpcbind和nfs做开机启动：(必须先启动rpcbind服务) 
+sudo systemctl enable rpcbind.service
+sudo systemctl enable nfs-kernel-server
+#然后分别启动rpcbind和nfs服务： 
+sudo systemctl start rpcbind.service
+sudo systemctl start nfs-kernel-server
+#确认NFS服务器启动成功： 
+rpcinfo -p
+
+检查 NFS 服务器是否挂载我们想共享的目录 /home/nfs/：
+sudo exportfs -r
+#使配置生效
+sudo exportfs
+#可以查看到已经ok
+/data/nfs <world>
+
+
+
+#NFS 客户端：
+sudo apt install -y nfs-common
+#启动rpcbind服务
+#先为rpcbind做开机启动：
+sudo systemctl enable rpcbind.service
+#然后启动rpcbind服务：
+sudo systemctl start rpcbind.service
+
+#检查 NFS 服务器端是否有目录共享：showmount -e nfs服务器的IP
+showmount -e 172.16.114.72
+
+#使用 mount 挂载服务器端的目录/home/nfs到客户端某个目录下
+mount -t nfs 172.16.114.72:/data/nfs /data/nfs
+
+
+
+-----CentOS-----------------
+服务端：
+yum install -y nfs-utils
+
+编辑exports文件，添加从机 
+vim /etc/exports
+/data/nfs/ *(rw,sync,no_root_squash,no_subtree_check)
+
+# *：允许所有的网段访问，也可以使用具体的IP
+# rw：挂接此目录的客户端对该共享目录具有读写权限
+# sync：资料同步写入内存和硬盘
+# no_root_squash：root用户具有对根目录的完全管理访问权限
+# no_subtree_check：不检查父目录的权限
+
+
+启动nfs服务
+先为rpcbind和nfs做开机启动：(必须先启动rpcbind服务) 
+systemctl enable rpcbind.service
+systemctl enable nfs-server.service
+然后分别启动rpcbind和nfs服务： 
+systemctl start rpcbind.service
+systemctl start nfs-server.service
+确认NFS服务器启动成功： 
+rpcinfo -p
+
+检查 NFS 服务器是否挂载我们想共享的目录 /home/nfs/：
+exportfs -r
+#使配置生效
+exportfs
+#可以查看到已经ok
+/home/nfs 192.168.248.0/24
+
+
+
+NFS 客户端：
+yum install -y nfs-utils
+启动rpcbind服务
+先为rpcbind做开机启动：
+systemctl enable rpcbind.service
+然后启动rpcbind服务：
+systemctl start rpcbind.service
+
+检查 NFS 服务器端是否有目录共享：showmount -e nfs服务器的IP
+showmount -e 172.16.114.245
+
+使用 mount 挂载服务器端的目录/home/nfs到客户端某个目录下
+mount -t nfs 172.16.114.245:/root/nfs_root /home/nfs
+

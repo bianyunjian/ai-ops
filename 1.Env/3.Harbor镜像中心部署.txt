@@ -1,0 +1,76 @@
+1.  在真正安装之前，我们还要安装下面这几个组件
+#python
+sudo apt install python3 //默认已有
+#openssl
+sudo apt install openssl //默认已有
+#docker
+sudo apt install docker-ce //默认已安装
+#docker-compose
+#运行此命令下载docker compose的当前稳定版本：
+
+curl -L https://get.daocloud.io/docker/compose/releases/download/1.26.0/docker-compose-`uname -s`-`uname -m` -o docker-compose
+sudo cp docker-compose /usr/local/bin/docker-compose
+#对二进制文件应用可执行权限
+sudo chmod +x /usr/local/bin/docker-compose
+ 
+
+
+2.  下载Harbor的在线安装包
+wget https://storage.googleapis.com/harbor-releases/release-1.8.0/harbor-online-installer-v1.8.1.tgz
+
+
+解压安装包
+tar zxvf harbor-online-installer-v1.8.1.tgz -C /usr/src/
+cd /usr/src/harbor
+
+编辑配置文件
+vim harbor.yml
+
+修改hostname为本机ip地址: 172.16.114.72
+修改http端口：10080
+其他参数，可以根据实际情况修改
+
+直接执行
+./install.sh
+
+等待很久后安装完成
+
+3. 访问Harbor
+http://172.16.114.72:10080
+用户名： admin
+密码：   Harbor12345
+
+
+创建新用户
+用户名： docker
+密码： Docker123
+
+创建新的项目 
+project: dev ，设置为公开，将新用户加入到新项目中
+
+
+4. 使用命令行测试docker从Harbor拉取镜像
+docker login http://172.16.114.72:10080 
+ 
+# 遇到http: server gave HTTP response to HTTPS client的错误
+#在所有使用docker pull/push的节点都需要修改
+sudo vim /etc/docker/daemon.json
+#向文件中添加：
+	"insecure-registries": ["172.16.114.72:10080"]
+
+#重启docker后生效：
+sudo systemctl restart docker
+
+
+测试推送一个镜像,然后再拉取
+docker pull busybox:latest
+docker tag  busybox:latest 172.16.114.72:10080/dev/busybox:latest
+docker push 172.16.114.72:10080/dev/busybox:latest
+docker rmi 172.16.114.72:10080/dev/busybox:latest
+docker pull 172.16.114.72:10080/dev/busybox:latest
+docker images |grep busybox
+
+
+
+
+

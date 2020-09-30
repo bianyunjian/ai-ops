@@ -37,7 +37,7 @@ rm  ~/.cache/gstreamer-1.0/* & ./deepdetect -c deepstream_app_config_yoloV3_tiny
 rm  ~/.cache/gstreamer-1.0/*
 
 
-docker run -it --rm --runtime nvidia -e ENV_SERVER_ADDRESS=http://192.168.1.120:19001 -e ENV_DEVICE_NAME=ai-device-01 192.168.1.120:10080/ax/ai-garbage:v1.0-arm64
+docker run -it --rm --runtime=nvidia -e ENV_SERVER_ADDRESS=http://192.168.1.120:19001 -e ENV_DEVICE_NAME=ai-device-01 192.168.1.120:10080/ax/ai-garbage:v1.0-arm64
 
 export ENV_SERVER_ADDRESS=http://192.168.1.120:19001
 export ENV_DEVICE_NAME=ai-device-01

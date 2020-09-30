@@ -96,7 +96,7 @@ file-loop=0
 [source0]
 enable=1
 type=4
-uri=rtsp://admin:FMGCSM@192.168.1.107
+uri=rtsp://admin:1qaz1qaz@192.168.1.125:554
 num-sources=1
 gpu-id=0
 cudadec-memtype=0

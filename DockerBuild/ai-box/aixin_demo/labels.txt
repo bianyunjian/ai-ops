@@ -1,4 +1,4 @@
+box
 person
-blue
-black
-white
+open
+close

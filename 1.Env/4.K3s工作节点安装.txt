@@ -1,83 +1,124 @@
 #环境准备：
-sudo apt install -y vim
-sudo apt install -y curl
-sudo apt install -y wget
-sudo apt install -y nfs-common
+apt install -y htop
+apt install -y vim
+apt install -y curl
+apt install -y wget
+apt install -y nfs-common
 
 #1.安装 Docker 环境
-sudo vim  /etc/apt/sources.list
+#vim  /etc/apt/sources.list
 ## 末尾添加以下源
 
-deb [arch=arm64] https://download.docker.com/linux/ubuntu bionic stable
-deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+#deb [arch=arm64] https://download.docker.com/linux/ubuntu bionic stable
+#deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
 
-#echo "deb [arch=arm64] https://download.docker.com/linux/ubuntu bionic stable" >> /etc/apt/sources.list
-#echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable" >> /etc/apt/sources.list
+echo "deb [arch=arm64] https://download.docker.com/linux/ubuntu bionic stable" >> /etc/apt/sources.list
+echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable" >> /etc/apt/sources.list
 
 #添加Docker官方GPG key
-sudo apt install curl
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+apt install curl
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 
-sudo apt update
-sudo apt-get install -y docker-ce
-sudo docker version
-配置 Docker 镜像站
-sudo vim /etc/docker/daemon.json
-添加：
-{
-	"registry-mirrors": ["https://f8vzefnx.mirror.aliyuncs.com"]
-}
-重启Docker后使docker的配置文件生效
-sudo systemctl daemon-reload
-sudo systemctl restart docker
+apt update
+apt-get install -y docker-ce
+docker version
+#配置 Docker 镜像站
+
+cp daemon.json /etc/docker/daemon.json -rf
+#vim /etc/docker/daemon.json
+#添加：
+#{
+#    "runtimes": {
+#        "nvidia": {
+#            "path": "nvidia-container-runtime",
+#            "runtimeArgs": []
+#        }
+#    },
+
+#    "registry-mirrors": ["https://f8vzefnx.mirror.aliyuncs.com"],
+#    "insecure-registries": ["192.168.1.120:10080"]
+#}
+
+#重启Docker后使docker的配置文件生效
+systemctl daemon-reload
+systemctl restart docker
 
 #2.工作节点：
 
 #-- 在自动下载安装的过程中存在网络问题. 下载k3s的二进制可执行文件
 #下载k3s二进制可执行文件(地址可以根据sh install.sh的命令行打印显示获取)
-#wget https://github.com/rancher/k3s/releases/download/v1.18.3%2Bk3s1/k3s
-#wget https://github.com/rancher/k3s/releases/download/v1.18.3%2Bk3s1/k3s-arm64
+#wget https://github.com/rancher/k3s/releases/download/v1.18.9%2Bk3s1/k3s
+#wget https://github.com/rancher/k3s/releases/download/v1.18.9%2Bk3s1/k3s-arm64
 #之后上传此Binary到服务器端的 /usr/local/bin/k3s，并赋予可执行属性：
-sudo cp k3s-arm64 /usr/local/bin/k3s
+cp k3s-arm64 /usr/local/bin/k3s
 
-sudo chmod +x /usr/local/bin/k3s
+chmod +x /usr/local/bin/k3s
 
 #要在工作程序节点上安装并将它们添加到集群中，我们应该将环境变量K3S_URL和K3S_TOKEN(或者K3S_CLUSTER_SECRET)一起传递。K3S_TOKEN在服务器的/var/lib/rancher/k3s/server/node-token
 
 #使用安装脚本+参数：
 
-卸载脚本
-sudo  /usr/local/bin/k3s-uninstall.sh
-sudo /usr/local/bin/k3s-agent-uninstall.sh
+#卸载脚本
+sh /usr/local/bin/k3s-uninstall.sh
+sh /usr/local/bin/k3s-agent-uninstall.sh
 
-export K3S_URL=https://172.16.114.72:6443 
-export K3S_TOKEN=K1017978489585cf8b23332f0b065d0154c8e419d75846b90190965152824301cf0::server:9c1c0bcd21455c55fdbad809225e834a
-export INSTALL_K3S_EXEC="--docker --no-deploy traefik"
-export INSTALL_K3S_VERSION=""
+cp k3s-arm64 /usr/local/bin/k3s -rf
+chmod +x /usr/local/bin/k3s
+export INSTALL_K3S_SKIP_DOWNLOAD=true
+export K3S_URL=https://192.168.1.120:6443 
+export K3S_TOKEN=K10855be0eb3b93cad2cb45f5316809a8a14b17c5ad10c3f696894400f2a6947194::server:04c5d14955328ecdbeecbcd51bd55533
+export INSTALL_K3S_EXEC="--docker --no-deploy traefik" 
 sh k3s_install.sh
 
 
-安装完成后，我们需要调整下K3S的服务配置文件，以将K3S的默认容器引擎从Containerd切换到Docker。
-修改K3S服务的配置文件：
-sudo vim /etc/systemd/system/multi-user.target.wants/k3s-agent.service
-需要修改ExecStart的值，将其修改为：
-/usr/local/bin/k3s agent --docker --no-deploy traefik
+#安装完成后，我们需要调整下K3S的服务配置文件，以将K3S的默认容器引擎从Containerd切换到Docker。
+#修改K3S服务的配置文件：
+#vim /etc/systemd/system/multi-user.target.wants/k3s-agent.service
+#需要修改ExecStart的值，将其修改为：
+#/usr/local/bin/k3s agent --docker --no-deploy traefik
 
 
 # 设置私有docker镜像库的地址
 # 在所有使用docker pull/push的节点都需要修改
-sudo vim /etc/docker/daemon.json
+#vim /etc/docker/daemon.json
 #向文件中添加：
-   "insecure-registries": ["172.16.114.72:10080"]
+#   "insecure-registries": ["172.16.114.72:10080"]
 
  
 
-保存退出，执行命令重新加载新的服务配置文件:
-sudo systemctl daemon-reload
-sudo systemctl restart docker 
-sudo systemctl restart k3s-agent.service
+#保存退出，执行命令重新加载新的服务配置文件:
+systemctl daemon-reload
+systemctl restart docker 
+systemctl restart k3s-agent.service
+
+ 
+#导入镜像
+cd docker-images
+sh importDockerImages.sh
 
 
+#保存退出，执行命令重新加载新的服务配置文件:
+systemctl daemon-reload
+systemctl restart docker 
+systemctl restart k3s-agent.service
 
+ 
+#设置系统时间与网络时间同步
+#安装ntpdate工具
+systemctl  disable systemd-timesyncd.service
+timedatectl set-timezone Asia/Shanghai
+timedatectl set-ntp true
+apt-get install ntpdate
+hwclock --systohc
+#每分钟同步一次
+echo "* * * * * /usr/sbin/ntpdate -u 192.168.1.120 >>/var/log/crontab.log 2>&1" >> /var/spool/cron/crontabs/root
+#一定root文件的权限必须为600，否则会出现错误 INSECURE MODE (mode 0600 expected)
+chmod 600 /var/spool/cron/crontabs/root
+touch /var/log/crontab.log
+chmod 777 /var/log/crontab.log
+service cron restart
+cat /var/log/cron.log
+#cron.log默认的日志未打开， 需要打开
+#vim /etc/rsyslog.d/50-default.conf
 
 

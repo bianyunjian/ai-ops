@@ -1,6 +1,7 @@
 #!/bin/sh
 set -e
-
+INSTALL_K3S_SKIP_DOWNLOAD=true
+INSTALL_K3S_VERSION=v1.18.9+k3s1
 # Usage:
 #   curl ... | ENV_VAR=... sh -
 #       or

@@ -1,0 +1,44 @@
+#https://ngc.nvidia.com/catalog/containers/nvidia:deepstream-l4t/tags
+#docker pull nvcr.io/nvidia/deepstream-l4t:5.0-20.07-base
+
+#docker pull land007/deepstream-l4t:5.0-dp-20.04-base
+
+
+docker run -it -d --rm --runtime nvidia -w /opt/nvidia/deepstream 192.168.1.120:10080/dev/deepstream-l4t:5.0-dp-20.04-base-arm64 ping 8.8.8.8
+
+docker ps -a |grep deepstream
+NEW_DOCKER_CONTAINER=`docker ps -a |grep deepstream |awk {'print $1'}`
+sudo docker cp sources.list $NEW_DOCKER_CONTAINER:/etc/apt/sources.list
+sudo docker cp aixin_demo $NEW_DOCKER_CONTAINER:/opt/nvidia/deepstream
+docker exec -it $NEW_DOCKER_CONTAINER /bin/bash
+
+
+
+ldd ./deepdetect  |grep not
+
+#配置 aixin_demo/config_server.ini 修改中心服务器的地址
+
+#配置  deepstream_app_config_yoloV3_tiny_template.txt
+# [sink0] 这个节点 设置enable=0 不显示画面
+
+#执行 ./deepdetect
+rm  ~/.cache/gstreamer-1.0/* & ./deepdetect -c deepstream_app_config_yoloV3_tiny.txt 
+
+#--启动完成 
+
+#如果报错
+#** ERROR: <create_multi_source_bin:714>: Failed to create element 'src_bin_muxer'
+#** ERROR: <create_multi_source_bin:777>: create_multi_source_bin failed
+#** ERROR: <create_pipeline:1045>: create_pipeline failed
+#** ERROR: <main:632>: Failed to create pipeline
+#Quitting
+#App run failed
+#则是因为gstreamer缓存问题，运行下边指令删除即可
+rm  ~/.cache/gstreamer-1.0/*
+
+
+docker run -it --rm --runtime nvidia -e ENV_SERVER_ADDRESS=http://192.168.1.120:19001 -e ENV_DEVICE_NAME=ai-device-01 192.168.1.120:10080/ax/ai-garbage:v1.0-arm64
+
+export ENV_SERVER_ADDRESS=http://192.168.1.120:19001
+export ENV_DEVICE_NAME=ai-device-01
+export ENV_WORK_DIR=/home/nvidia/Desktop/garbage/buildDocker/aixin_demo

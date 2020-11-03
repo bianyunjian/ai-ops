@@ -4,6 +4,7 @@ apt install -y vim
 apt install -y curl
 apt install -y wget
 apt install -y nfs-common
+apt install -y ca-certificates
 
 #1.安装 Docker 环境
 #vim  /etc/apt/sources.list
@@ -68,6 +69,7 @@ chmod +x /usr/local/bin/k3s
 export INSTALL_K3S_SKIP_DOWNLOAD=true
 export K3S_URL=https://192.168.1.120:6443 
 export K3S_TOKEN=K10855be0eb3b93cad2cb45f5316809a8a14b17c5ad10c3f696894400f2a6947194::server:04c5d14955328ecdbeecbcd51bd55533
+
 export INSTALL_K3S_EXEC="--docker --no-deploy traefik" 
 sh k3s_install.sh
 

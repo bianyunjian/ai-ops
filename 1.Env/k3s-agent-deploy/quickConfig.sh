@@ -40,8 +40,6 @@ echo "################### 设置时间同步的定时任务"
 # 每分钟同步一次时间（中心服务器作为时间服务器）
 echo "* * * * * /usr/sbin/ntpdate -u $CENTRAL_SERVER_IP >>/var/log/crontab.log 2>&1" >> /var/spool/cron/crontabs/root
 
-#每分钟同步一次时间 （备选方案 NTP服务器(上海)）
-echo "* * * * * /usr/sbin/ntpdate -u ntp.api.bz >>/var/log/crontab.log 2>&1" >> /var/spool/cron/crontabs/root
 cat /var/spool/cron/crontabs/root
 echo "################### 设置时间同步的定时任务完成"
 

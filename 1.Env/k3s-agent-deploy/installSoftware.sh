@@ -12,7 +12,16 @@ fi
 
 
 echo "#####################环境准备,安装常用软件包"
+cp /etc/apt/sources.list /etc/apt/sources.list.save -rf
 cp sources.list /etc/apt/sources.list -rf
+echo "##################### 添加Docker源到/etc/apt/sources.list"
+echo "deb [arch=arm64] https://mirrors.ustc.edu.cn/docker-ce/linux/ubuntu $(lsb_release -cs) stable" >> /etc/apt/sources.list
+#echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable" >> /etc/apt/sources.list
+echo "##################### 添加Docker GPG key"
+#curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+curl -fsSL https://mirrors.ustc.edu.cn/docker-ce/linux/ubuntu/gpg | apt-key add -
+
+
 apt update
 apt install -y htop
 apt install -y vim
@@ -22,15 +31,6 @@ apt install -y nfs-common
 apt install -y ca-certificates
 
 echo "#####################安装 Docker 环境" 
-echo "##################### 添加Docker源到/etc/apt/sources.list"
-echo "deb [arch=arm64] https://download.docker.com/linux/ubuntu bionic stable" >> /etc/apt/sources.list
-echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable" >> /etc/apt/sources.list
-
-echo "##################### 添加Docker官方GPG key"
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-
-echo "##################### 更新软件包列表"
-apt update
 apt install -y docker-ce
 echo "##################### Docker 安装完成，查看版本信息"
 docker version 
